@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Add Medicine</h2>
+<form method="POST">
+    <label>Medicine Name:</label>
+    <input type="text" name="name" required>
+
+    <label>Dosage:</label>
+    <input type="text" name="dosage" required>
+
+    <label>Reminder Time (YYYY-MM-DD HH:MM:SS):</label>
+    <input type="text" name="reminder_time" required>
+
+    <label>Notes:</label>
+    <textarea name="notes"></textarea>
+
+    <button type="submit">Save</button>
+</form>
+{% endblock %}
