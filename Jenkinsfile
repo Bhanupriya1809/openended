@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     environment {
         IMAGE_NAME = "bhanupriya18/smart_health_reminder"
         CONTAINER_NAME = "smart_health_app"
@@ -18,7 +18,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${IMAGE_NAME}:latest")
+                    bat """
+                        docker build -t ${IMAGE_NAME}:latest .
+                    """
                 }
             }
         }
@@ -37,20 +39,18 @@ pipeline {
             steps {
                 script {
 
-                    // Stop old container
+                    // stop and remove old container
+                    bat "docker stop ${CONTAINER_NAME} || exit /b 0"
+                    bat "docker rm ${CONTAINER_NAME} || exit /b 0"
+
+                    // free port 5000 if any container uses it
                     bat """
-                    docker stop ${CONTAINER_NAME} || exit /b 0
-                    docker rm ${CONTAINER_NAME} || exit /b 0
+                        FOR /F "tokens=1" %%i IN ('docker ps -q --filter "publish=5000"') DO docker stop %%i || exit /b 0
                     """
 
-                    // Free port 5000 if used by ANY container
+                    // run new container
                     bat """
-                    FOR /F "tokens=1" %%i IN ('docker ps -q --filter "publish=5000"') DO docker stop %%i
-                    """
-
-                    // Run new container
-                    bat """
-                    docker run -d --name ${CONTAINER_NAME} -p 5000:5000 ${IMAGE_NAME}:latest
+                        docker run -d --name ${CONTAINER_NAME} -p 5000:5000 ${IMAGE_NAME}:latest
                     """
                 }
             }
