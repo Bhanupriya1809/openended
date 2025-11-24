@@ -39,16 +39,17 @@ pipeline {
             steps {
                 script {
 
-                    // stop and remove old container
+                    // Stop old container (ignore errors)
                     bat "docker stop ${CONTAINER_NAME} || exit /b 0"
                     bat "docker rm ${CONTAINER_NAME} || exit /b 0"
 
-                    // free port 5000 if any container uses it
+                    // Free port 5000 on Windows
                     bat """
-                        FOR /F "tokens=1" %%i IN ('docker ps -q --filter "publish=5000"') DO docker stop %%i || exit /b 0
+                        FOR /F "tokens=1" %%i IN ('docker ps -q --filter "publish=5000"') DO docker stop %%i
+                        exit /b 0
                     """
 
-                    // run new container
+                    // Start new container
                     bat """
                         docker run -d --name ${CONTAINER_NAME} -p 5000:5000 ${IMAGE_NAME}:latest
                     """
