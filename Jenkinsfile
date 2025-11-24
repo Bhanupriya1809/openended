@@ -36,14 +36,16 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 script {
-                    // Stop old running container
-                    sh "docker stop ${CONTAINER_NAME} || true"
-                    sh "docker rm ${CONTAINER_NAME} || true"
 
-                    // Deploy the new image
-                    sh """
-                        docker run -d --name ${CONTAINER_NAME} \
-                        -p 5000:5000 ${IMAGE_NAME}:latest
+                    // Stop old container (Windows)
+                    bat """
+                    docker stop ${CONTAINER_NAME} || exit /b 0
+                    docker rm ${CONTAINER_NAME} || exit /b 0
+                    """
+
+                    // Run new container
+                    bat """
+                    docker run -d --name ${CONTAINER_NAME} -p 5000:5000 ${IMAGE_NAME}:latest
                     """
                 }
             }
