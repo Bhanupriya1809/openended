@@ -1,19 +1,56 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Add Medicine</h2>
-<form method="POST">
-    <label>Medicine Name:</label>
-    <input type="text" name="name" required>
 
-    <label>Dosage:</label>
-    <input type="text" name="dosage" required>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
 
-    <label>Reminder Time (YYYY-MM-DD HH:MM:SS):</label>
-    <input type="text" name="reminder_time" required>
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h3 class="mb-0"><i class="fas fa-pills"></i> Add Medicine</h3>
+                </div>
 
-    <label>Notes:</label>
-    <textarea name="notes"></textarea>
+                <div class="card-body p-4">
 
-    <button type="submit">Save</button>
-</form>
+                    <form method="POST">
+
+                        <!-- Medicine Name -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Medicine Name</label>
+                            <input type="text" class="form-control form-control-lg" name="name" required>
+                        </div>
+
+                        <!-- Dosage -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Dosage</label>
+                            <input type="text" class="form-control form-control-lg" name="dosage" required>
+                        </div>
+
+                        <!-- Reminder Time -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Reminder Time</label>
+                            <input type="datetime-local" class="form-control form-control-lg" name="reminder_time" required>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Notes</label>
+                            <textarea class="form-control form-control-lg" rows="3" name="notes"></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-success btn-lg rounded-3">
+                                <i class="fas fa-save"></i> Save Medicine
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
