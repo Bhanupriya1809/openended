@@ -6,10 +6,11 @@ app = Flask(__name__)
 
 def get_db_connection():
     conn = mysql.connector.connect(
-        host=os.getenv("DB_HOST", "localhost"),
+        host=os.getenv("DB_HOST", "host.docker.internal"),
         user=os.getenv("DB_USER", "root"),
         password=os.getenv("DB_PASSWORD", "root@123"),
-        database=os.getenv("DB_NAME", "health_reminder")
+        database=os.getenv("DB_NAME", "health_reminder"),
+        port=os.getenv("DB_PORT", "3306")
     )
     return conn
 
@@ -55,4 +56,5 @@ def delete_medicine(med_id):
     return redirect("/")
 
 if __name__ == "__main__":
+    # FIX: must bind to 0.0.0.0 inside Docker
     app.run(host="0.0.0.0", port=5000, debug=True)

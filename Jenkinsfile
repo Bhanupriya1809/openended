@@ -39,19 +39,25 @@ pipeline {
             steps {
                 script {
 
-                    // Stop old container (ignore errors)
+                    // Stop old container (ignore if not exists)
                     bat "docker stop ${CONTAINER_NAME} || exit /b 0"
                     bat "docker rm ${CONTAINER_NAME} || exit /b 0"
 
-                    // Free port 5000 on Windows
+                    // Free port 5000 if used
                     bat """
                         FOR /F "tokens=1" %%i IN ('docker ps -q --filter "publish=5000"') DO docker stop %%i
                         exit /b 0
                     """
 
-                    // Start new container
+                    // 🟢 START NEW CONTAINER WITH MYSQL ENV VARIABLES
                     bat """
-                        docker run -d --name ${CONTAINER_NAME} -p 5000:5000 ${IMAGE_NAME}:latest
+                        docker run -d --name ${CONTAINER_NAME} ^
+                        -p 5000:5000 ^
+                        -e DB_HOST=host.docker.internal ^
+                        -e DB_USER=root ^
+                        -e DB_PASSWORD=root@123 ^
+                        -e DB_NAME=health_reminder ^
+                        ${IMAGE_NAME}:latest
                     """
                 }
             }
