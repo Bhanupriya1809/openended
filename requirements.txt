@@ -3,16 +3,10 @@ mysql-connector-python==8.3.0
 itsdangerous==2.1.2
 Jinja2==3.1.3
 Werkzeug==3.0.1
-gunFlask==3.0.2
-mysql-connector-python==8.3.0
-itsdangerous==2.1.2
-Jinja2==3.1.3
-Werkzeug==3.0.1
 gunicorn==21.2.0
 
-# For popup/email scheduling
+# Scheduler for reminders
 APScheduler==3.10.4
 
-# For sending email alerts (optional but recommended)
+# Email notifications
 Flask-Mail==0.9.1
-icorn==21.2.0
