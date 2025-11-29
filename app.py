@@ -11,8 +11,8 @@ app = Flask(__name__)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.getenv("EMAIL_USER", "mbhanubhavi47@gmail.com")
-app.config['MAIL_PASSWORD'] = os.getenv("EMAIL_PASS", "qmnh ytzz tsuq jknk")
+app.config['MAIL_USERNAME'] = os.getenv("EMAIL_USER", "xxxxxxx@gmail.com")
+app.config['MAIL_PASSWORD'] = os.getenv("EMAIL_PASS", "xxxx xxxx xxxx xxxx")
 mail = Mail(app)
 
 # ---------------- DATABASE CONNECTION ---------
