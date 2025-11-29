@@ -65,25 +65,32 @@
 
     <!-- Popup Notification Script -->
     <script>
-        // Request permission once
+        // Request browser permission for notifications
         if (Notification.permission !== "granted") {
             Notification.requestPermission();
         }
 
-        // Poll API every 20 seconds
+        // Store already-shown notifications to prevent duplicates
+        let shownNotifications = new Set();
+
+        // Check reminders every 10 seconds
         setInterval(() => {
             fetch("/check_due_popup")
                 .then(response => response.json())
                 .then(meds => {
                     meds.forEach(med => {
-                        new Notification("💊 Medicine Reminder", {
-                            body: `${med.name} \nTime: ${med.reminder_time}`,
-                            icon: "https://cdn-icons-png.flaticon.com/512/2966/2966486.png"
-                        });
+                        if (!shownNotifications.has(med.id)) {
+                            shownNotifications.add(med.id);
+
+                            new Notification("💊 Medicine Reminder", {
+                                body: `${med.name}\nTime: ${med.reminder_time}`,
+                                icon: "https://cdn-icons-png.flaticon.com/512/2966/2966486.png"
+                            });
+                        }
                     });
                 })
                 .catch(err => console.error("Popup error:", err));
-        }, 20000);
+        }, 10000); // every 10 sec
     </script>
 
     <!-- Bootstrap JS -->

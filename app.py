@@ -12,7 +12,7 @@ app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.getenv("EMAIL_USER", "namma.relentless@gmail.com")
-app.config['MAIL_PASSWORD'] = os.getenv("EMAIL_PASS", "olcv pton pqqp yqvn")  # App Password
+app.config['MAIL_PASSWORD'] = os.getenv("EMAIL_PASS", "olcv pton pqqp yqvn")  # Gmail App Password
 mail = Mail(app)
 
 # ---------------- DATABASE CONNECTION ---------
@@ -54,6 +54,7 @@ def check_reminders():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
+    # Email reminder if exact minute matches
     cursor.execute("""
         SELECT * FROM medicines
         WHERE TIMESTAMPDIFF(MINUTE, reminder_time, NOW()) = 0
@@ -117,23 +118,24 @@ def delete_medicine(med_id):
 
     return redirect("/")
 
-# ---------------- POPUP CHECK API -------------------
+# ---------------- POPUP CHECK API (New Improved) -------------------
 @app.route("/check_due_popup")
 def check_due_popup():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
+    # ✔ 60-second safe window (prevents missed notifications)
     cursor.execute("""
         SELECT * FROM medicines
         WHERE reminder_time <= NOW()
-        AND reminder_time >= NOW() - INTERVAL 20 SECOND
+        AND reminder_time >= NOW() - INTERVAL 60 SECOND
     """)
 
     meds = cursor.fetchall()
     cursor.close()
     conn.close()
 
-    return jsonify(meds)  # FIXED: Must return JSON for JavaScript
+    return jsonify(meds)  # ✔ must return JSON
 
 # ---------------- RUN APP -------------------------
 if __name__ == "__main__":
