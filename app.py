@@ -50,7 +50,9 @@ Notes: {med['notes']}
             mail.send(msg)
         print(f"Email sent successfully for {med['name']}!")
     except Exception as e:
-        print(f"Email error for {med['name']}:", e)
+        print(f"Email error for {med['name']}: {e}")
+        # 💡 Added an explicit message for troubleshooting email configuration
+        print("!!! TROUBLESHOOTING: Please check your Gmail App Password and network connection. !!!")
 
 # ---------------- REMINDER CHECKER (Every 1 min) --------------
 def check_reminders():
@@ -98,6 +100,19 @@ def index():
     conn.close()
 
     return render_template("index.html", medicines=medicines)
+
+# 💡 NEW ROUTE: Simple test to verify email configuration works
+@app.route("/test-email")
+def test_email():
+    test_med = {
+        'name': 'Test Pill', 
+        'dosage': '5mg', 
+        'reminder_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
+        'notes': 'This is a test email sent manually.'
+    }
+    send_email_alert(test_med)
+    return "Attempted to send test email. Check your application console for success/error messages, and check your inbox."
+
 
 @app.route("/add", methods=["GET", "POST"])
 def add_medicine():
