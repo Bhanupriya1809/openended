@@ -29,14 +29,13 @@ def get_db_connection():
 
 # ---------------- SEND EMAIL -------------------
 def send_email_alert(med):
-    """Sends email and marks the medicine as sent in the database."""
-    success = False
     try:
         msg = Message(
             subject=f"⏰ Medicine Reminder: {med['name']}",
             sender=app.config['MAIL_USERNAME'],
-            recipients=[os.getenv("EMAIL_TO", "amoghmn2004@gmail04.com")] # Target email recipient
+            recipients=[os.getenv("EMAIL_TO", "amoghmn2004@gmail.com")] # Target email recipient
         )
+        # Format the email body cleanly
         msg.body = f"""
 This is your medicine reminder:
 
@@ -46,49 +45,30 @@ Time: {med['reminder_time']}
 Notes: {med['notes']}
         """
 
+        # Must be run within an application context for Flask-Mail
         with app.app_context():
             mail.send(msg)
         print(f"Email sent successfully for {med['name']}!")
-        success = True
     except Exception as e:
-        print(f"Email error for {med['name']}: {e}")
-        print("!!! TROUBLESHOOTING: Please check your Gmail App Password and network connection. !!!")
-
-    # 💡 TRANSACTIONAL FIX: Update DB only if email sending was attempted/successful
-    if success:
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            # Mark the reminder as sent to prevent re-sending. (Requires the new DB column!)
-            cursor.execute(
-                "UPDATE medicines SET reminder_sent = 1 WHERE id = %s", 
-                (med['id'],)
-            )
-            conn.commit()
-            cursor.close()
-            conn.close()
-            print(f"Medicine ID {med['id']} marked as sent.")
-        except Exception as db_e:
-            # This exception likely means the 'reminder_sent' column is missing!
-            print(f"Database error marking medicine as sent. DID YOU RUN THE SQL COMMAND? Error: {db_e}")
+        print(f"Email error for {med['name']}:", e)
 
 # ---------------- REMINDER CHECKER (Every 1 min) --------------
 def check_reminders():
     """
     Background job to check for due reminders and send emails.
-    Only checks for items where reminder_sent is 0 (not sent yet).
+    Uses a 5-minute lookback window to prevent missed reminders due to clock drift.
     """
     print(f"[{datetime.now().strftime('%H:%M:%S')}] Checking reminders for email...")
     
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # 🚨 FIX: Only select reminders that haven't been sent (reminder_sent = 0)
+    # 🚨 FIX: Widen the check window to 5 minutes (300 seconds)
+    # Checks for any medicine due within the last 5 minutes.
     cursor.execute("""
         SELECT * FROM medicines
         WHERE reminder_time <= NOW()
         AND reminder_time >= NOW() - INTERVAL 5 MINUTE
-        AND reminder_sent = 0 
     """)
 
     due_meds = cursor.fetchall()
@@ -96,8 +76,9 @@ def check_reminders():
     conn.close()
 
     for med in due_meds:
-        print(f"Triggering email for: {med['name']} (ID: {med['id']})")
-        # send_email_alert handles the database update after sending
+        # Note: In a real system, you would mark this as "sent" to avoid duplicates.
+        # For simplicity, we just send the email every time it enters the 5-minute window.
+        print(f"Triggering email for: {med['name']}")
         send_email_alert(med)
 
 # ---------------- SCHEDULER ---------------------
@@ -118,21 +99,6 @@ def index():
 
     return render_template("index.html", medicines=medicines)
 
-# 💡 NEW ROUTE: Simple test to verify email configuration works
-@app.route("/test-email")
-def test_email():
-    test_med = {
-        'id': 0, # Dummy ID for testing only
-        'name': 'Test Pill', 
-        'dosage': '5mg', 
-        'reminder_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
-        'notes': 'This is a test email sent manually.'
-    }
-    # NOTE: This test email will confirm connectivity but will fail to update the DB since ID 0 doesn't exist.
-    send_email_alert(test_med)
-    return "Attempted to send test email. Check your application console for success/error messages, and check your inbox."
-
-
 @app.route("/add", methods=["GET", "POST"])
 def add_medicine():
     if request.method == "POST":
@@ -143,9 +109,8 @@ def add_medicine():
 
         conn = get_db_connection()
         cursor = conn.cursor()
-        # Insert with new column default (must exist in DB)
         cursor.execute(
-            "INSERT INTO medicines (name, dosage, reminder_time, notes, reminder_sent) VALUES (%s, %s, %s, %s, 0)",
+            "INSERT INTO medicines (name, dosage, reminder_time, notes) VALUES (%s, %s, %s, %s)",
             (name, dosage, reminder_time, notes),
         )
         conn.commit()
@@ -178,18 +143,18 @@ def check_due_popup():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # 🚨 FIX: Only show pop-ups for reminders that have NOT been sent yet (reminder_sent = 0)
+    # 🚨 FIX: Widen the safe window from 60 seconds to 5 minutes (300 SECOND)
+    # This is the crucial change for preventing missed browser pop-ups.
     cursor.execute("""
         SELECT * FROM medicines
         WHERE reminder_time <= NOW()
         AND reminder_time >= NOW() - INTERVAL 300 SECOND
-        AND reminder_sent = 0
     """)
 
     meds = cursor.fetchall()
     cursor.close()
     conn.close()
-    
+
     return jsonify(meds) # Must return JSON for the frontend to process
 
 # ---------------- RUN APP -------------------------
