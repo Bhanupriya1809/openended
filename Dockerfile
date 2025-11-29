@@ -23,8 +23,8 @@ ENV FLASK_APP=app.py
 ENV PYTHONUNBUFFERED=1
 
 # Expose internal container port  
-# (your app runs on port 6000)
-EXPOSE 6000
+# (your app runs on port 5001)
+EXPOSE 5001
 
 # Run using gunicorn (better than flask run)
-CMD ["gunicorn", "--bind", "0.0.0.0:6000", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5001", "app:app"]
