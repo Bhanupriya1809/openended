@@ -10,3 +10,4 @@ APScheduler==3.10.4
 
 # Email notifications
 Flask-Mail==0.9.1
+

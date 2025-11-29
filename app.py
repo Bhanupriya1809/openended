@@ -12,21 +12,20 @@ app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.getenv("EMAIL_USER", "namma.relentless@gmail.com")
-app.config['MAIL_PASSWORD'] = os.getenv("EMAIL_PASS", "olcv pton pqqp yqvn")
+app.config['MAIL_PASSWORD'] = os.getenv("EMAIL_PASS", "olcv pton pqqp yqvn")  # App Password
 mail = Mail(app)
 
 # ---------------- DATABASE CONNECTION ---------
 def get_db_connection():
-    conn = mysql.connector.connect(
+    return mysql.connector.connect(
         host=os.getenv("DB_HOST", "host.docker.internal"),
         user=os.getenv("DB_USER", "root"),
         password=os.getenv("DB_PASSWORD", "root@123"),
         database=os.getenv("DB_NAME", "health_reminder"),
         port=os.getenv("DB_PORT", "3306")
     )
-    return conn
 
-# --------------- SEND EMAIL -------------------
+# ---------------- SEND EMAIL -------------------
 def send_email_alert(med):
     try:
         msg = Message(
@@ -35,7 +34,8 @@ def send_email_alert(med):
             recipients=[os.getenv("EMAIL_TO", "amoghmn2004@gmail.com")]
         )
         msg.body = f"""
-        Reminder for medicine:
+        This is your medicine reminder:
+
         Name: {med['name']}
         Dosage: {med['dosage']}
         Time: {med['reminder_time']}
@@ -43,14 +43,14 @@ def send_email_alert(med):
         """
 
         mail.send(msg)
-        print("Email sent!")
+        print("Email sent successfully!")
     except Exception as e:
         print("Email error:", e)
 
-# ---------------- REMINDER CHECKER --------------
+# ---------------- REMINDER CHECKER (Every 1 min) --------------
 def check_reminders():
-    print("Checking reminders...")
-
+    print("Checking reminders…")
+    
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -58,13 +58,13 @@ def check_reminders():
         SELECT * FROM medicines
         WHERE TIMESTAMPDIFF(MINUTE, reminder_time, NOW()) = 0
     """)
-    due_meds = cursor.fetchall()
 
+    due_meds = cursor.fetchall()
     cursor.close()
     conn.close()
 
     for med in due_meds:
-        print("Reminder triggered:", med['name'])
+        print("Triggered:", med["name"])
         send_email_alert(med)
 
 # ---------------- SCHEDULER ---------------------
@@ -77,10 +77,11 @@ scheduler.start()
 def index():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM medicines ORDER BY reminder_time;")
+    cursor.execute("SELECT * FROM medicines ORDER BY reminder_time")
     medicines = cursor.fetchall()
     cursor.close()
     conn.close()
+
     return render_template("index.html", medicines=medicines)
 
 @app.route("/add", methods=["GET", "POST"])
@@ -113,24 +114,10 @@ def delete_medicine(med_id):
     conn.commit()
     cursor.close()
     conn.close()
+
     return redirect("/")
 
-# -------- Browser popup API (JS polls every 30 sec) ------
-@app.route("/check_due_popup")
-def check_due_popup():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT * FROM medicines
-        WHERE TIMESTAMPDIFF(MINUTE, reminder_time, NOW()) = 0
-    """)
-    due = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-    return jsonify(due)
-
+# ---------------- POPUP CHECK API -------------------
 @app.route("/check_due_popup")
 def check_due_popup():
     conn = get_db_connection()
@@ -146,9 +133,8 @@ def check_due_popup():
     cursor.close()
     conn.close()
 
-    return meds
-
+    return jsonify(meds)  # FIXED: Must return JSON for JavaScript
 
 # ---------------- RUN APP -------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

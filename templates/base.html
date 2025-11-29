@@ -63,25 +63,26 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Popup Notification Script (NO SOUND) -->
+    <!-- Popup Notification Script -->
     <script>
-        // Ask for notification permission
+        // Request permission once
         if (Notification.permission !== "granted") {
             Notification.requestPermission();
         }
 
-        // Check for due reminders every 20 seconds
+        // Poll API every 20 seconds
         setInterval(() => {
             fetch("/check_due_popup")
                 .then(response => response.json())
                 .then(meds => {
                     meds.forEach(med => {
                         new Notification("💊 Medicine Reminder", {
-                            body: `${med.name} at ${med.reminder_time}`,
+                            body: `${med.name} \nTime: ${med.reminder_time}`,
                             icon: "https://cdn-icons-png.flaticon.com/512/2966/2966486.png"
                         });
                     });
-                });
+                })
+                .catch(err => console.error("Popup error:", err));
         }, 20000);
     </script>
 
