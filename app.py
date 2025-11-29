@@ -11,8 +11,8 @@ app = Flask(__name__)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.getenv("EMAIL_USER", "xxxxxxx@gmail.com")
-app.config['MAIL_PASSWORD'] = os.getenv("EMAIL_PASS", "xxxx xxxx xxxx xxxx")
+app.config['MAIL_USERNAME'] = os.getenv("EMAIL_USER", "namma.relentless@gmail.com")
+app.config['MAIL_PASSWORD'] = os.getenv("EMAIL_PASS", "olcv pton pqqp yqvn")
 mail = Mail(app)
 
 # ---------------- DATABASE CONNECTION ---------
@@ -151,4 +151,4 @@ def check_due_popup():
 
 # ---------------- RUN APP -------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)
